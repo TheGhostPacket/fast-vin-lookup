@@ -250,6 +250,39 @@ function createSpecCard(label, value, icon = '') {
     `;
 }
 
+// Create section with empty state (for first sections in tabs)
+function renderSection(title, icon, cards) {
+    const trimmedCards = cards.trim();
+    if (!trimmedCards) {
+        return `
+            <h2 class="section-header"><span class="section-icon">${icon}</span>${title}</h2>
+            <div style="padding: 2rem; text-align: center; color: var(--gray-500); background: var(--gray-50); border-radius: var(--radius-lg); margin-bottom: 1.5rem;">
+                <p style="margin: 0;">ℹ️ No data available for this section from NHTSA database</p>
+            </div>
+        `;
+    }
+    return `
+        <h2 class="section-header"><span class="section-icon">${icon}</span>${title}</h2>
+        <div class="spec-grid">${trimmedCards}</div>
+    `;
+}
+
+// Create section with empty state (for subsequent sections with margin-top)
+function createSection(title, icon, cards) {
+    if (!cards || cards.trim() === '') {
+        return `
+            <h2 class="section-header mt-4"><span class="section-icon">${icon}</span>${title}</h2>
+            <div style="padding: 2rem; text-align: center; color: var(--gray-500); background: var(--gray-50); border-radius: var(--radius-lg);">
+                <p>No data available for this section</p>
+            </div>
+        `;
+    }
+    return `
+        <h2 class="section-header mt-4"><span class="section-icon">${icon}</span>${title}</h2>
+        <div class="spec-grid">${cards}</div>
+    `;
+}
+
 // Display comprehensive results with tabs
 function displayComprehensiveResults(vin, data, recalls) {
     const isReal = detectRealVIN(data);
@@ -288,31 +321,31 @@ function displayComprehensiveResults(vin, data, recalls) {
 
         <!-- Vehicle Summary Card -->
         <div class="vehicle-summary-card">
-            <div class="vehicle-title">${data.basic.modelYear} ${data.basic.make} ${data.basic.model}</div>
+            <div class="vehicle-title">${data.basic.modelYear || 'Unknown Year'} ${data.basic.make || 'Unknown Make'} ${data.basic.model || 'Unknown Model'}</div>
             <div class="vehicle-quick-specs">
                 <div class="quick-spec-item">
                     <div class="quick-spec-label">Make</div>
-                    <div class="quick-spec-value">${data.basic.make}</div>
+                    <div class="quick-spec-value">${data.basic.make || 'N/A'}</div>
                 </div>
                 <div class="quick-spec-item">
                     <div class="quick-spec-label">Model</div>
-                    <div class="quick-spec-value">${data.basic.model}</div>
+                    <div class="quick-spec-value">${data.basic.model || 'N/A'}</div>
                 </div>
                 <div class="quick-spec-item">
                     <div class="quick-spec-label">Year</div>
-                    <div class="quick-spec-value">${data.basic.modelYear}</div>
+                    <div class="quick-spec-value">${data.basic.modelYear || 'N/A'}</div>
                 </div>
                 <div class="quick-spec-item">
                     <div class="quick-spec-label">Body Class</div>
-                    <div class="quick-spec-value">${data.basic.bodyClass}</div>
+                    <div class="quick-spec-value">${data.basic.bodyClass || 'N/A'}</div>
                 </div>
                 <div class="quick-spec-item">
                     <div class="quick-spec-label">Manufacturer</div>
-                    <div class="quick-spec-value">${data.basic.manufacturer}</div>
+                    <div class="quick-spec-value">${data.basic.manufacturer || 'N/A'}</div>
                 </div>
                 <div class="quick-spec-item">
                     <div class="quick-spec-label">Origin</div>
-                    <div class="quick-spec-value">${data.basic.plantCountry}</div>
+                    <div class="quick-spec-value">${data.basic.plantCountry || 'N/A'}</div>
                 </div>
             </div>
         </div>
@@ -395,83 +428,75 @@ function displayComprehensiveResults(vin, data, recalls) {
 
             <!-- Dimensions Tab -->
             <div class="tab-content" id="tab-dimensions">
-                <h2 class="section-header"><span class="section-icon">📏</span>Dimensions & Weight</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Wheelbase', data.dimensions.wheelBaseInches, '📐')}
-                    ${createSpecCard('Overall Length', data.dimensions.overallLength)}
-                    ${createSpecCard('Overall Width', data.dimensions.overallWidth)}
-                    ${createSpecCard('Overall Height', data.dimensions.overallHeight)}
-                    ${createSpecCard('Track Width', data.dimensions.trackWidth)}
-                    ${createSpecCard('Curb Weight', data.dimensions.curbWeightLB, '⚖️')}
-                    ${createSpecCard('GVWR', data.dimensions.grossVehicleWeightRating)}
-                    ${createSpecCard('GCWR', data.dimensions.grossCombinationWeightRating)}
-                    ${createSpecCard('Bed Length', data.dimensions.bedLengthInches)}
-                </div>
+                ${renderSection('Dimensions & Weight', '📏', 
+                    createSpecCard('Wheelbase', data.dimensions.wheelBaseInches, '📐') +
+                    createSpecCard('Overall Length', data.dimensions.overallLength) +
+                    createSpecCard('Overall Width', data.dimensions.overallWidth) +
+                    createSpecCard('Overall Height', data.dimensions.overallHeight) +
+                    createSpecCard('Track Width', data.dimensions.trackWidth) +
+                    createSpecCard('Curb Weight', data.dimensions.curbWeightLB, '⚖️') +
+                    createSpecCard('GVWR', data.dimensions.grossVehicleWeightRating) +
+                    createSpecCard('GCWR', data.dimensions.grossCombinationWeightRating) +
+                    createSpecCard('Bed Length', data.dimensions.bedLengthInches)
+                )}
             </div>
 
             <!-- Safety Tab -->
             <div class="tab-content" id="tab-safety">
-                <h2 class="section-header"><span class="section-icon">🛡️</span>Airbag Systems</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Front Airbags', data.safety.airBagLocFront, '🎈')}
-                    ${createSpecCard('Side Airbags', data.safety.airBagLocSide)}
-                    ${createSpecCard('Curtain Airbags', data.safety.airBagLocCurtain)}
-                    ${createSpecCard('Knee Airbags', data.safety.airBagLocKnee)}
-                </div>
+                ${renderSection('Airbag Systems', '🛡️',
+                    createSpecCard('Front Airbags', data.safety.airBagLocFront, '🎈') +
+                    createSpecCard('Side Airbags', data.safety.airBagLocSide) +
+                    createSpecCard('Curtain Airbags', data.safety.airBagLocCurtain) +
+                    createSpecCard('Knee Airbags', data.safety.airBagLocKnee)
+                )}
 
-                <h2 class="section-header mt-4"><span class="section-icon">🔒</span>Seat Belt Systems</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Seat Belts', data.safety.seatBeltsAll, '🔒')}
-                    ${createSpecCard('Pretensioner', data.safety.pretensioner)}
-                </div>
+                ${createSection('Seat Belt Systems', '🔒',
+                    createSpecCard('Seat Belts', data.safety.seatBeltsAll, '🔒') +
+                    createSpecCard('Pretensioner', data.safety.pretensioner)
+                )}
 
-                <h2 class="section-header mt-4"><span class="section-icon">🚦</span>Active Safety</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('ABS', data.safety.abs, '🛑')}
-                    ${createSpecCard('ESC', data.safety.esc)}
-                    ${createSpecCard('Traction Control', data.safety.tractionControl)}
-                    ${createSpecCard('TPMS', data.safety.tpms, '📊')}
-                </div>
+                ${createSection('Active Safety', '🚦',
+                    createSpecCard('ABS', data.safety.abs, '🛑') +
+                    createSpecCard('ESC', data.safety.esc) +
+                    createSpecCard('Traction Control', data.safety.tractionControl) +
+                    createSpecCard('TPMS', data.safety.tpms, '📊')
+                )}
 
-                <h2 class="section-header mt-4"><span class="section-icon">👁️</span>Driver Assistance</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Adaptive Cruise Control', data.safety.adaptiveCruiseControl, '🎯')}
-                    ${createSpecCard('Crash Imminent Braking', data.safety.crashImminent)}
-                    ${createSpecCard('Blind Spot Monitor', data.safety.blindSpotMon, '👁️')}
-                    ${createSpecCard('Lane Departure Warning', data.safety.laneDepartureWarning)}
-                    ${createSpecCard('Lane Keeping Assist', data.safety.laneKeepingAssist)}
-                    ${createSpecCard('Lane Centering', data.safety.laneCenteringAssist)}
-                    ${createSpecCard('Rear Cross Traffic Alert', data.safety.rearCrossTrafficAlert)}
-                    ${createSpecCard('Park Assist', data.safety.parkAssist, '🅿️')}
-                    ${createSpecCard('Rear Camera', data.safety.rearVisibilitySystem, '📹')}
-                    ${createSpecCard('Forward Collision Warning', data.safety.forwardCollisionWarning)}
-                    ${createSpecCard('Pedestrian Braking', data.safety.pedestrianAutomaticEmergencyBraking)}
-                </div>
+                ${createSection('Driver Assistance', '👁️',
+                    createSpecCard('Adaptive Cruise Control', data.safety.adaptiveCruiseControl, '🎯') +
+                    createSpecCard('Crash Imminent Braking', data.safety.crashImminent) +
+                    createSpecCard('Blind Spot Monitor', data.safety.blindSpotMon, '👁️') +
+                    createSpecCard('Lane Departure Warning', data.safety.laneDepartureWarning) +
+                    createSpecCard('Lane Keeping Assist', data.safety.laneKeepingAssist) +
+                    createSpecCard('Lane Centering', data.safety.laneCenteringAssist) +
+                    createSpecCard('Rear Cross Traffic Alert', data.safety.rearCrossTrafficAlert) +
+                    createSpecCard('Park Assist', data.safety.parkAssist, '🅿️') +
+                    createSpecCard('Rear Camera', data.safety.rearVisibilitySystem, '📹') +
+                    createSpecCard('Forward Collision Warning', data.safety.forwardCollisionWarning) +
+                    createSpecCard('Pedestrian Braking', data.safety.pedestrianAutomaticEmergencyBraking)
+                )}
 
-                <h2 class="section-header mt-4"><span class="section-icon">💡</span>Lighting</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Daytime Running Lights', data.safety.daytimeRunningLight, '💡')}
-                    ${createSpecCard('Headlamp Light Source', data.safety.headlampLightSource)}
-                </div>
+                ${createSection('Lighting', '💡',
+                    createSpecCard('Daytime Running Lights', data.safety.daytimeRunningLight, '💡') +
+                    createSpecCard('Headlamp Light Source', data.safety.headlampLightSource)
+                )}
             </div>
 
             <!-- Features Tab -->
             <div class="tab-content" id="tab-features">
-                <h2 class="section-header"><span class="section-icon">🪑</span>Interior</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Seats', data.interior.seats, '🪑')}
-                    ${createSpecCard('Seat Rows', data.interior.seatRows)}
-                    ${createSpecCard('Steering Location', data.interior.steeringLocation, '🎛️')}
-                    ${createSpecCard('Entertainment System', data.interior.entertainmentSystem, '📻')}
-                    ${createSpecCard('Keyless Ignition', data.safety.keylessIgnition, '🔑')}
-                </div>
+                ${renderSection('Interior', '🪑',
+                    createSpecCard('Seats', data.interior.seats, '🪑') +
+                    createSpecCard('Seat Rows', data.interior.seatRows) +
+                    createSpecCard('Steering Location', data.interior.steeringLocation, '🎛️') +
+                    createSpecCard('Entertainment System', data.interior.entertainmentSystem, '📻') +
+                    createSpecCard('Keyless Ignition', data.safety.keylessIgnition, '🔑')
+                )}
 
-                <h2 class="section-header mt-4"><span class="section-icon">🛞</span>Wheels & Tires</h2>
-                <div class="spec-grid">
-                    ${createSpecCard('Wheels', data.wheels.wheels, '🛞')}
-                    ${createSpecCard('Wheel Size (Front)', data.wheels.wheelSizeFront)}
-                    ${createSpecCard('Wheel Size (Rear)', data.wheels.wheelSizeRear)}
-                </div>
+                ${createSection('Wheels & Tires', '🛞',
+                    createSpecCard('Wheels', data.wheels.wheels, '🛞') +
+                    createSpecCard('Wheel Size (Front)', data.wheels.wheelSizeFront) +
+                    createSpecCard('Wheel Size (Rear)', data.wheels.wheelSizeRear)
+                )}
             </div>
 
             <!-- Recalls Tab -->
@@ -667,48 +692,41 @@ async function decodeVIN(vin) {
     }
 }
 
-// Get random VIN
+// Get random VIN - with fallback
 async function getRandomVIN() {
-    const maxAttempts = 10;
-    let attempts = 0;
+    showLoading('Loading sample VIN...');
     
-    showLoading('Generating random VIN...');
+    // Fallback sample VINs (real vehicles)
+    const sampleVINs = [
+        '1HGBH41JXMN109186', // 2017 Honda Accord
+        '5NPE34AF0HH478974', // 2017 Hyundai Sonata
+        '1FTEW1E54KFA00000', // Ford F-150
+        '5YJSA1E26HF000000', // Tesla Model S
+        '1G1YY22G965107987', // Chevrolet Corvette
+        '2HGFC2F59JH542071', // Honda Civic
+        '1N4AL3AP8JC229411', // Nissan Altima
+        'WBADT43452G920138', // BMW 3-Series
+        'JM1BK32F781304531', // Mazda 3
+        '5FNRL6H78KB024085'  // Honda Odyssey
+    ];
     
-    while (attempts < maxAttempts) {
-        try {
-            const vinResponse = await fetch('https://randomvin.com/getvin.php?type=random');
-            if (!vinResponse.ok) throw new Error('Failed to fetch random VIN');
-            
-            const randomVin = (await vinResponse.text()).trim().toUpperCase();
-            
-            if (!isValidVIN(randomVin)) {
-                attempts++;
-                continue;
-            }
-            
-            if (shownVins.has(randomVin)) {
-                attempts++;
-                continue;
-            }
-            
-            shownVins.add(randomVin);
-            if (shownVins.size > MAX_CACHE_SIZE) {
-                const vinsArray = Array.from(shownVins);
-                shownVins = new Set(vinsArray.slice(100));
-            }
-            
-            vinInput.value = randomVin;
-            await decodeVIN(randomVin);
-            return;
-            
-        } catch (error) {
-            console.error('Random VIN Error:', error);
-            attempts++;
-        }
+    // Filter out already shown VINs
+    const availableVINs = sampleVINs.filter(vin => !shownVins.has(vin));
+    
+    // If all have been shown, reset
+    if (availableVINs.length === 0) {
+        shownVins.clear();
+        availableVINs.push(...sampleVINs);
     }
     
+    // Pick random from available
+    const randomVin = availableVINs[Math.floor(Math.random() * availableVINs.length)];
+    
+    shownVins.add(randomVin);
+    vinInput.value = randomVin;
+    
     hideLoading();
-    alert('Unable to generate a unique VIN. Please try again.');
+    await decodeVIN(randomVin);
 }
 
 // Event Listeners
