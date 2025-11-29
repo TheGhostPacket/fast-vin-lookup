@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Free VIN Decoder - Decode any Vehicle Identification Number and get detailed vehicle information from the official NHTSA database">
-    <meta name="keywords" content="VIN decoder, vehicle identification number, car check, auto decoder, NHTSA">
-    <title>VIN Decoder - Free Vehicle Identification Number Lookup</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Free VIN Decoder - Comprehensive vehicle information, recall check, and PDF reports from official NHTSA database">
+    <meta name="keywords" content="VIN decoder, vehicle identification number, car check, auto decoder, NHTSA, recalls, PDF report">
+    <title>VIN Decoder Pro - Free Comprehensive Vehicle Reports</title>
+    <link rel="stylesheet" href="styles-enhanced.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -23,10 +25,13 @@
                         <path d="M16 16V24" stroke="white" stroke-width="2" stroke-linecap="round"/>
                         <path d="M8 12L16 16L24 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <h1>VIN Decoder</h1>
+                    <div>
+                        <h1>VIN Decoder Pro</h1>
+                        <span class="logo-tagline">Comprehensive Reports</span>
+                    </div>
                 </div>
                 <nav class="nav">
-                    <a href="#about">About</a>
+                    <a href="#features">Features</a>
                     <a href="#how-it-works">How It Works</a>
                     <a href="https://theghostpacket.com" target="_blank">Portfolio</a>
                 </nav>
@@ -38,8 +43,9 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <h2 class="hero-title">Decode Any Vehicle Identification Number</h2>
-                <p class="hero-subtitle">Get instant, detailed vehicle information from the official NHTSA database. Free, fast, and accurate.</p>
+                <div class="hero-badge">🆓 100% Free • No Sign-Up Required</div>
+                <h2 class="hero-title">Get Comprehensive Vehicle Reports Instantly</h2>
+                <p class="hero-subtitle">Decode any VIN and get detailed specifications, safety recalls, equipment details, and downloadable PDF reports - all powered by official NHTSA data.</p>
                 
                 <!-- VIN Input Form -->
                 <div class="vin-input-section">
@@ -56,18 +62,36 @@
                                 <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M19 19L14.65 14.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            Decode VIN
+                            Get Full Report
                         </button>
                     </div>
-                    <button id="randomVinBtn" class="btn btn-secondary">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M19 16V10H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M17.51 7C16.9612 5.56679 16.0128 4.31426 14.7801 3.39175C13.5475 2.46923 12.0822 1.91583 10.5537 1.79508C9.02518 1.67433 7.49351 1.99115 6.14163 2.70736C4.78975 3.42357 3.67525 4.50702 2.93 5.83L1 10M19 10L17.07 14.17C16.3248 15.493 15.2103 16.5764 13.8584 17.2926C12.5065 18.0089 10.9748 18.3257 9.44632 18.2049C7.91783 18.0842 6.45254 17.5308 5.21986 16.6083C3.98718 15.6857 3.03882 14.4332 2.49 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Try Random VIN
-                    </button>
-                    <p class="input-hint">VIN must be exactly 17 characters (letters and numbers only, no I, O, or Q)</p>
+                    <div class="action-buttons">
+                        <button id="randomVinBtn" class="btn btn-secondary">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M19 16V10H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17.51 7C16.9612 5.56679 16.0128 4.31426 14.7801 3.39175C13.5475 2.46923 12.0822 1.91583 10.5537 1.79508C9.02518 1.67433 7.49351 1.99115 6.14163 2.70736C4.78975 3.42357 3.67525 4.50702 2.93 5.83L1 10M19 10L17.07 14.17C16.3248 15.493 15.2103 16.5764 13.8584 17.2926C12.5065 18.0089 10.9748 18.3257 9.44632 18.2049C7.91783 18.0842 6.45254 17.5308 5.21986 16.6083C3.98718 15.6857 3.03882 14.4332 2.49 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Try Sample VIN
+                        </button>
+                    </div>
+                    <p class="input-hint">VIN must be exactly 17 characters (no I, O, or Q)</p>
+                </div>
+
+                <!-- Stats -->
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">100+</div>
+                        <div class="stat-label">Data Points</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">Free</div>
+                        <div class="stat-label">Forever</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">Instant</div>
+                        <div class="stat-label">Reports</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,25 +104,47 @@
         </div>
     </section>
 
-    <!-- About Section -->
-    <section id="about" class="about">
+    <!-- Features Section -->
+    <section id="features" class="features">
         <div class="container">
-            <h2 class="section-title">What is a VIN?</h2>
-            <div class="about-grid">
-                <div class="about-card">
-                    <div class="card-icon">🔍</div>
-                    <h3>Unique Identifier</h3>
-                    <p>Every vehicle has a unique 17-character Vehicle Identification Number that acts like a fingerprint for your car.</p>
+            <h2 class="section-title">Comprehensive Vehicle Information</h2>
+            <p class="section-subtitle">Everything you need to know about any vehicle, completely free</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Basic Information</h3>
+                    <p>Make, model, year, body style, and manufacturer details</p>
                 </div>
-                <div class="about-card">
-                    <div class="card-icon">📊</div>
-                    <h3>Comprehensive Data</h3>
-                    <p>VINs contain encoded information about the manufacturer, model year, engine type, and manufacturing plant.</p>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Engine & Performance</h3>
+                    <p>Cylinders, displacement, horsepower, fuel type, and drivetrain</p>
                 </div>
-                <div class="about-card">
-                    <div class="card-icon">🔒</div>
-                    <h3>Official Source</h3>
-                    <p>Our decoder uses the NHTSA (National Highway Traffic Safety Administration) database for accurate information.</p>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📏</div>
+                    <h3>Dimensions & Weight</h3>
+                    <p>Length, width, height, wheelbase, and weight ratings</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Safety Features</h3>
+                    <p>Airbags, safety systems, crash ratings, and equipment</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Safety Recalls</h3>
+                    <p>Active recalls, manufacturer defects, and safety campaigns</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>PDF Reports</h3>
+                    <p>Download comprehensive reports with all vehicle data</p>
                 </div>
             </div>
         </div>
@@ -112,17 +158,17 @@
                 <div class="step">
                     <div class="step-number">1</div>
                     <h3>Enter VIN</h3>
-                    <p>Type or paste any 17-character VIN into the search box above</p>
+                    <p>Type any 17-character Vehicle Identification Number</p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <h3>We Decode</h3>
-                    <p>Our system queries the official NHTSA database for comprehensive vehicle data</p>
+                    <h3>Instant Analysis</h3>
+                    <p>We decode using official NHTSA and recall databases</p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <h3>Get Results</h3>
-                    <p>Receive detailed vehicle specifications, authenticity status, and technical information</p>
+                    <h3>Get Full Report</h3>
+                    <p>View comprehensive data online or download as PDF</p>
                 </div>
             </div>
         </div>
@@ -133,13 +179,14 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>VIN Decoder</h4>
-                    <p>Free vehicle identification number lookup powered by NHTSA database</p>
+                    <h4>VIN Decoder Pro</h4>
+                    <p>Free comprehensive vehicle information powered by official NHTSA database</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Resources</h4>
-                    <a href="https://vpic.nhtsa.dot.gov/api/" target="_blank">NHTSA API</a>
-                    <a href="https://www.nhtsa.gov/" target="_blank">NHTSA Official Site</a>
+                    <h4>Data Sources</h4>
+                    <a href="https://vpic.nhtsa.dot.gov/api/" target="_blank">NHTSA VIN API</a>
+                    <a href="https://www.nhtsa.gov/recalls" target="_blank">NHTSA Recalls</a>
+                    <a href="https://www.nhtsa.gov/" target="_blank">NHTSA Official</a>
                 </div>
                 <div class="footer-section">
                     <h4>Connect</h4>
@@ -148,8 +195,8 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 VIN Decoder. Built by <a href="https://theghostpacket.com" target="_blank">Packet Whisperer</a></p>
-                <p class="disclaimer">Data provided by NHTSA. For informational purposes only.</p>
+                <p>&copy; 2024 VIN Decoder Pro. Built by <a href="https://theghostpacket.com" target="_blank">Packet Whisperer</a></p>
+                <p class="disclaimer">Data provided by NHTSA. For informational purposes only. Always verify critical information.</p>
             </div>
         </div>
     </footer>
@@ -157,9 +204,9 @@
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="loader"></div>
-        <p>Decoding VIN...</p>
+        <p id="loadingText">Decoding VIN...</p>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script-enhanced.js"></script>
 </body>
 </html>
