@@ -1,5 +1,10 @@
-// VIN Decoder Pro - Professional Redesign
-// Complete rewrite with tabbed navigation and 150+ NHTSA fields
+// VIN Decoder Pro - Professional Redesign with Marketcheck API
+// Complete rewrite with tabbed navigation and 150+ NHTSA fields + Market Pricing
+
+// ========================================
+// MARKETCHECK API CONFIGURATION
+// ========================================
+const MARKETCHECK_API_KEY = 'qEwgUtOCQtC7xGBO1spCY4GdkOoHDzsM'; // Your Marketcheck API key
 
 // Global state
 let shownVins = new Set();
@@ -358,6 +363,7 @@ function displayComprehensiveResults(vin, data, recalls) {
                 <button class="tab-btn" onclick="switchTab('dimensions')">📏 Dimensions</button>
                 <button class="tab-btn" onclick="switchTab('safety')">🛡️ Safety</button>
                 <button class="tab-btn" onclick="switchTab('features')">✨ Features</button>
+                <button class="tab-btn" onclick="switchTab('pricing')">💰 Pricing</button>
                 <button class="tab-btn" onclick="switchTab('recalls')">🔔 Recalls</button>
             </div>
 
@@ -497,6 +503,35 @@ function displayComprehensiveResults(vin, data, recalls) {
                     createSpecCard('Wheel Size (Front)', data.wheels.wheelSizeFront) +
                     createSpecCard('Wheel Size (Rear)', data.wheels.wheelSizeRear)
                 )}
+            </div>
+
+            <!-- Pricing Tab -->
+            <div class="tab-content" id="tab-pricing">
+                ${renderSection('Market Value Analysis', '💰',
+                    createSpecCard('Estimated Market Value', data.pricing.estimatedValue, '💵') +
+                    createSpecCard('Original MSRP', data.pricing.msrp, '🏷️') +
+                    createSpecCard('Confidence Level', data.pricing.confidence, '📊') +
+                    createSpecCard('Comparable Listings', data.pricing.comparableCount, '🔍')
+                )}
+                
+                <div style="margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, #EBF4FF 0%, #E0E7FF 100%); border-radius: var(--radius-lg); border-left: 4px solid var(--primary-blue);">
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <div style="font-size: 2rem;">ℹ️</div>
+                        <div>
+                            <p style="margin: 0 0 0.5rem 0; color: var(--gray-800); font-weight: 600; font-size: 0.9rem;">
+                                About Market Value Estimates
+                            </p>
+                            <p style="margin: 0; color: var(--gray-600); font-size: 0.875rem; line-height: 1.6;">
+                                Pricing data is estimated based on current market conditions, vehicle specifications, 
+                                mileage (50,000 assumed), and comparable listings from dealerships across the US. 
+                                Actual value may vary based on condition, location, dealer pricing, and optional features.
+                            </p>
+                            <p style="margin: 0.75rem 0 0 0; color: var(--gray-500); font-size: 0.75rem;">
+                                <strong>Data Source:</strong> Powered by Marketcheck API
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Recalls Tab -->
@@ -671,8 +706,15 @@ async function decodeVIN(vin) {
         const results = vinData.Results || [];
         const data = getComprehensiveVINData(results);
         
+        // NEW: Fetch Marketcheck pricing
+        showLoading('Fetching market pricing...');
+        const pricingData = await fetchMarketPricing(vin);
+        
         showLoading('Checking for recalls...');
         const recalls = await fetchRecalls(vin);
+        
+        // NEW: Add pricing data to comprehensive data
+        data.pricing = pricingData;
         
         hideLoading();
         displayComprehensiveResults(vin, data, recalls);
@@ -689,6 +731,52 @@ async function decodeVIN(vin) {
             </div>
         `;
         showResults();
+    }
+}
+
+// ========================================
+// MARKETCHECK: Fetch Vehicle Pricing
+// ========================================
+async function fetchMarketPricing(vin) {
+    try {
+        // Build API request
+        const params = new URLSearchParams({
+            api_key: MARKETCHECK_API_KEY,
+            vin: vin,
+            miles: 50000,        // Average mileage
+            zip: '90210',        // Default zip code
+            dealer_type: 'all'   // Check all dealer types
+        });
+
+        const response = await fetch(
+            `https://api.marketcheck.com/v2/predict/car/us/marketcheck_price?${params}`
+        );
+
+        // Check for errors
+        if (!response.ok) {
+            console.warn('Marketcheck API error:', response.status);
+            throw new Error('Marketcheck API request failed');
+        }
+
+        const data = await response.json();
+        console.log('Marketcheck pricing data:', data);
+        
+        // Return formatted data
+        return {
+            estimatedValue: data.price ? `$${data.price.toLocaleString()}` : 'N/A',
+            msrp: data.msrp ? `$${data.msrp.toLocaleString()}` : 'N/A',
+            confidence: data.confidence || 'N/A',
+            comparableCount: data.comparable_count || 'N/A'
+        };
+    } catch (error) {
+        console.error('Marketcheck API Error:', error);
+        // Return N/A values on error (graceful degradation)
+        return {
+            estimatedValue: 'N/A',
+            msrp: 'N/A',
+            confidence: 'N/A',
+            comparableCount: 'N/A'
+        };
     }
 }
 
