@@ -1143,6 +1143,47 @@ decodeBtn.addEventListener('click', () => {
 
 randomVinBtn.addEventListener('click', getRandomVIN);
 
+// License Plate Lookup
+const plateBtn = document.getElementById('plateBtn');
+const plateInput = document.getElementById('plateInput');
+const stateSelect = document.getElementById('stateSelect');
+
+plateBtn.addEventListener('click', async () => {
+    const plate = plateInput.value.trim().toUpperCase();
+    const state = stateSelect.value;
+    
+    if (!plate) {
+        alert('Please enter a license plate number');
+        return;
+    }
+    
+    showLoading('Looking up license plate...');
+    
+    try {
+        const vin = await fetchVINFromPlate(plate, state);
+        
+        if (vin) {
+            vinInput.value = vin;
+            hideLoading();
+            alert(`Found VIN: ${vin}\nNow decoding vehicle...`);
+            await decodeVIN(vin);
+        } else {
+            hideLoading();
+            alert('Could not find VIN for this license plate.\n\nThis could mean:\n• Plate not in database\n• Free API limit reached (10/month)\n• Plate format incorrect\n\nTry entering the VIN directly instead.');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Plate lookup error:', error);
+        alert('License plate lookup failed. Please try entering the VIN directly.');
+    }
+});
+
+plateInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        plateBtn.click();
+    }
+});
+
 vinInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         decodeBtn.click();
